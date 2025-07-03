@@ -1,0 +1,35 @@
+name: gitpod_flutter_quickstart
+description: A new Flutter project.
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.17.0 <3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.2
+
+  # ✅ Firebase packages (Dart 2.17.3 compatible)
+  firebase_core: ^2.4.1
+  firebase_auth: ^4.2.7
+  firebase_storage: ^11.0.16
+  cloud_firestore: ^4.3.2
+
+  # ✅ Image picker
+  image_picker: ^0.8.6
+
+  # ✅ Tinder-style swipe cards
+  flutter_tindercard: ^0.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
