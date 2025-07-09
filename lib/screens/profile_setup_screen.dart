@@ -1,9 +1,14 @@
 import 'dart:io';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geolocator/geolocator.dart';
+
 import '../services/auth_service.dart';
+import 'selfie_verification_screen.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -20,7 +25,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   Future<void> _pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() {
         _imageFile = File(picked.path);
       });
@@ -33,26 +38,61 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
     String? imageUrl;
 
-    // Upload image to Firebase Storage
     if (_imageFile != null) {
-      final ref = FirebaseStorage.instance.ref().child('profile_images/$uid.jpg');
+      final ref =
+          FirebaseStorage.instance.ref().child('profile_images/$uid.jpg');
       await ref.putFile(_imageFile!);
       imageUrl = await ref.getDownloadURL();
     }
 
-    // Save profile data to Firestore
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
     await FirebaseFirestore.instance.collection('users').doc(uid).set({
-      'bio': _bioController.text,
-      'branch': _branchController.text,
-      'dutyStation': _dutyStationController.text,
+      'bio': _bioController.text.trim(),
+      'branch': _branchController.text.trim(),
+      'dutyStation': _dutyStationController.text.trim(),
       'profileImage': imageUrl ?? '',
+      'location': GeoPoint(position.latitude, position.longitude),
+      'verified': false,
+      'isPremium': false,
     });
+
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Profile saved!')),
     );
 
-    // Optionally: navigate to home or match screen
+    Navigator.pushReplacementNamed(context, '/home');
+  }
+
+  Future<void> _uploadSelfie() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+
+    if (pickedFile == null) return;
+
+    final currentUserId = AuthService().currentUserId;
+    final storageRef =
+        FirebaseStorage.instance.ref().child('selfies/$currentUserId.jpg');
+
+    await storageRef.putFile(File(pickedFile.path));
+    final selfieUrl = await storageRef.getDownloadURL();
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUserId)
+        .update({
+      'selfieUrl': selfieUrl,
+      'verificationStatus': 'pending',
+    });
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Selfie uploaded. Awaiting verification.')),
+    );
   }
 
   @override
@@ -67,8 +107,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               onTap: _pickImage,
               child: CircleAvatar(
                 radius: 50,
-                backgroundImage: _imageFile != null ? FileImage(_imageFile!) : null,
-                child: _imageFile == null ? const Icon(Icons.add_a_photo) : null,
+                backgroundImage:
+                    _imageFile != null ? FileImage(_imageFile!) : null,
+                child:
+                    _imageFile == null ? const Icon(Icons.add_a_photo) : null,
               ),
             ),
             const SizedBox(height: 20),
@@ -99,6 +141,22 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             ElevatedButton(
               onPressed: _submitProfile,
               child: const Text('Save Profile'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const SelfieVerificationScreen()),
+                );
+              },
+              child: const Text("Verify Profile"),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _uploadSelfie,
+              child: const Text('Upload Selfie for Verification'),
             ),
           ],
         ),

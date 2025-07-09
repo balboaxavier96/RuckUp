@@ -1,94 +1,62 @@
 import 'package:flutter/material.dart';
-import '../widgets/custom_button.dart';
-import '../services/auth_service.dart';
-import '../screens/home_screen.dart';
-import '../screens/signup_screen.dart';
+import 'phone_login_screen.dart';
+import 'email_login_screen.dart';
+import 'signup_screen.dart'; // ✅ Add this import
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
-
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-
-  Future<void> _handleLogin() async {
-    final scaffoldContext = context; // ✅ Safely capture context
-
-    String email = _emailController.text.trim();
-    String password = _passwordController.text;
-
-    bool success = await AuthService().login(email, password);
-
-    if (success) {
-      Navigator.push(
-        scaffoldContext,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    } else {
-      ScaffoldMessenger.of(scaffoldContext).showSnackBar(
-        const SnackBar(content: Text('Login failed')),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[50],
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Welcome to RuckUp',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 40),
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 30),
-              CustomButton(
-                text: 'Log In',
-                onPressed: _handleLogin,
-              ),
-              const SizedBox(height: 20),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SignUpScreen()),
-                  );
-                },
-                child: const Text(
-                  'Don’t have an account? Sign Up',
-                  style: TextStyle(
-                    color: Colors.blue,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-            ],
-          ),
+      appBar: AppBar(title: const Text('RuckUp Login')),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton.icon(
+              icon: const Icon(Icons.phone),
+              label: const Text('Login with Phone'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PhoneLoginScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.email),
+              label: const Text('Login with Email'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EmailLoginScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.g_mobiledata),
+              label: const Text('Login with Google'),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Google login coming soon')),
+                );
+              },
+            ),
+            const SizedBox(height: 40), // Space before the create account
+            TextButton(
+              child: const Text("Don't have an account? Create one"),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

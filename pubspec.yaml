@@ -1,12 +1,12 @@
-name: gitpod_flutter_quickstart
+name: ruckup
 description: A new Flutter project.
 
-publish_to: 'none'
+publish_to: 'none' # Remove this if you plan to publish to pub.dev
 
 version: 1.0.0+1
 
 environment:
-  sdk: '>=2.17.0 <3.0.0'
+  sdk: ">=2.17.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -14,22 +14,39 @@ dependencies:
 
   cupertino_icons: ^1.0.2
 
-  # ✅ Firebase packages (Dart 2.17.3 compatible)
-  firebase_core: ^2.4.1
-  firebase_auth: ^4.2.7
-  firebase_storage: ^11.0.16
-  cloud_firestore: ^4.3.2
+  # ✅ Firebase (Updated to latest stable)
+  firebase_core: ^2.31.0
+  firebase_auth: ^4.17.4
+  cloud_firestore: ^4.15.0
+  firebase_storage: ^11.6.6
+  firebase_messaging: ^14.7.10
 
-  # ✅ Image picker
-  image_picker: ^0.8.6
+  cloud_functions: ^4.7.6
 
-  # ✅ Tinder-style swipe cards
-  flutter_tindercard: ^0.2.0
+  # ✅ Auth & File Access
+  google_sign_in: ^6.2.1
+  file_picker: ^6.1.1
+  image_picker: ^1.0.7
+
+  # ✅ UI & Swiping
+  flutter_card_swiper: ^4.0.0
+
+  # ✅ GPS Location
+  geolocator: ^11.0.0
+  geocoding: ^2.2.0
+
+  # ✅ Camera & Permissions
+  camera: ^0.10.5+9
+  permission_handler: ^11.3.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^3.0.1
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/images/ruckup_logo.png
+    - assets/images/ocp_bg.png

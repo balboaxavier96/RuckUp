@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'profile_setup_screen.dart'; // ✅ Step 1: Import Profile Setup Screen
+import 'dart:async';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -14,24 +15,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> _handleSignUp() async {
-    final scaffoldContext = context; // ✅ Safe context capture
-
     String email = _emailController.text.trim();
     String password = _passwordController.text;
 
     bool success = await AuthService().signUp(email, password);
+
+    // ✅ Always check if the widget is still mounted before using context
+    if (!mounted) return;
+
     if (success) {
-      ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Account created!')),
       );
 
       // ✅ Step 2: Navigate to Profile Setup
       Navigator.pushReplacement(
-        scaffoldContext,
+        context,
         MaterialPageRoute(builder: (_) => const ProfileSetupScreen()),
       );
     } else {
-      ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Sign-up failed')),
       );
     }
