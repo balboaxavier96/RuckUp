@@ -1,0 +1,23 @@
+{
+    "html.format.enable": false,
+    "githubPullRequests.ignoredPullRequestBranches": [
+        "master"
+    ],
+    "files.trimTrailingWhitespace": true,
+    "files.exclude": {
+        "**/.dart_tool": true,
+        "**/build": true,
+        "**/.idea": true,
+        "**/.vscode": false,
+        "**/androidsdk": true,
+        "**/flutter": true
+    },
+    "search.exclude": {
+        "**/flutter": true,
+        "**/androidsdk": true
+    },
+    "dart.analysisExcludedFolders": [
+        "androidsdk",
+        "flutter"
+    ]
+}
