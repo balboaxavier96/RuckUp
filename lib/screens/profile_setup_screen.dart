@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -23,6 +21,28 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final TextEditingController _dutyStationController = TextEditingController();
   File? _imageFile;
 
+  final List<String> _availableInterests = [
+    'Fitness', 'Gaming', 'Music', 'Gym rat', 'Coffee addict',
+    'Chaplain\'s kid', 'Outdoorsy', 'Bookworm', 'Military Brat',
+    'Travel lover', 'Homebody',
+  ];
+  final List<String> _selectedInterests = [];
+
+  final List<String> _prompts = [
+    'What’s your duty station like?',
+    'Best MRE flavor?',
+    'Favorite off-base spot?',
+  ];
+  final Map<String, TextEditingController> _promptControllers = {};
+
+  @override
+  void initState() {
+    super.initState();
+    for (var prompt in _prompts) {
+      _promptControllers[prompt] = TextEditingController();
+    }
+  }
+
   Future<void> _pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null && mounted) {
@@ -39,8 +59,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     String? imageUrl;
 
     if (_imageFile != null) {
-      final ref =
-          FirebaseStorage.instance.ref().child('profile_images/$uid.jpg');
+      final ref = FirebaseStorage.instance.ref().child('profile_images/$uid.jpg');
       await ref.putFile(_imageFile!);
       imageUrl = await ref.getDownloadURL();
     }
@@ -48,6 +67,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     Position position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
+
+    final Map<String, String> promptAnswers = {
+      for (var prompt in _prompts) prompt: _promptControllers[prompt]!.text.trim(),
+    };
 
     await FirebaseFirestore.instance.collection('users').doc(uid).set({
       'bio': _bioController.text.trim(),
@@ -57,6 +80,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       'location': GeoPoint(position.latitude, position.longitude),
       'verified': false,
       'isPremium': false,
+      'prompts': promptAnswers,
+      'interests': _selectedInterests,
     });
 
     if (!mounted) return;
@@ -102,18 +127,22 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GestureDetector(
-              onTap: _pickImage,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage:
-                    _imageFile != null ? FileImage(_imageFile!) : null,
-                child:
-                    _imageFile == null ? const Icon(Icons.add_a_photo) : null,
+            // Profile image
+            Center(
+              child: GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundImage: _imageFile != null ? FileImage(_imageFile!) : null,
+                  child: _imageFile == null ? const Icon(Icons.add_a_photo) : null,
+                ),
               ),
             ),
             const SizedBox(height: 20),
+
+            // Bio
             TextField(
               controller: _bioController,
               decoration: const InputDecoration(
@@ -122,6 +151,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               ),
             ),
             const SizedBox(height: 15),
+
+            // Branch & Duty Station
             TextField(
               controller: _branchController,
               decoration: const InputDecoration(
@@ -137,26 +168,75 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: _submitProfile,
-              child: const Text('Save Profile'),
-            ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const SelfieVerificationScreen()),
+
+            // Prompts
+            const Text('Military Prompts', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            ..._prompts.map((prompt) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: TextField(
+                controller: _promptControllers[prompt],
+                decoration: InputDecoration(
+                  labelText: prompt,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            )),
+            const SizedBox(height: 20),
+
+            // Interests
+            const Text('Interests', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _availableInterests.map((interest) {
+                final isSelected = _selectedInterests.contains(interest);
+                return FilterChip(
+                  label: Text(interest),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) {
+                        _selectedInterests.add(interest);
+                      } else {
+                        _selectedInterests.remove(interest);
+                      }
+                    });
+                  },
                 );
-              },
-              child: const Text("Verify Profile"),
+              }).toList(),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _uploadSelfie,
-              child: const Text('Upload Selfie for Verification'),
+            const SizedBox(height: 30),
+
+            // Save + Selfie buttons
+            Center(
+              child: Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: _submitProfile,
+                    child: const Text('Save Profile'),
+                  ),
+                  const SizedBox(height: 15),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SelfieVerificationScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text("Verify Profile"),
+                  ),
+                  const SizedBox(height: 15),
+                  ElevatedButton(
+                    onPressed: _uploadSelfie,
+                    child: const Text('Upload Selfie for Verification'),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

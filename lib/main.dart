@@ -8,6 +8,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 // App UI
 import 'screens/matches_screen.dart';
 import 'screens/liked_you_screen.dart';
+import 'screens/who_viewed_you_screen.dart';
+import 'screens/top_picks_screen.dart';
 import 'screens/welcome_screen.dart';
 
 void main() async {
@@ -71,6 +73,8 @@ class _RuckUpAppState extends State<RuckUpApp> {
       routes: {
         '/matches': (_) => const MatchesScreen(),
         '/liked-you': (_) => const LikedYouScreen(),
+        '/who-viewed-you': (_) => const WhoViewedYouScreen(),
+        '/top-picks': (_) => const TopPicksScreen(),
       },
     );
   }
