@@ -1,43 +1,16 @@
-FROM gitpod/workspace-full
+image:
+  file: .gitpod.Dockerfile
 
-USER root
+tasks:
+  - name: Init Flutter
+    init: |
+      flutter pub get
+    command: |
+      flutter doctor
 
-# Optional: Remove deprecated nginx PPA
-RUN add-apt-repository --remove ppa:ondrej/nginx-mainline || true
-RUN add-apt-repository -y ppa:ondrej/nginx
+vscode:
+  extensions:
+    - Dart-Code.dart-code
+    - Dart-Code.flutter
 
-# Add Chrome signing key
-RUN mkdir -p /usr/share/keyrings && \
-    curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
-    | gpg --dearmor \
-    | tee /usr/share/keyrings/google-chrome.gpg > /dev/null && \
-    echo "deb [signed-by=/usr/share/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" \
-    | tee /etc/apt/sources.list.d/google-chrome.list
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    openjdk-8-jdk \
-    libgtk-3-dev \
-    libnss3-dev \
-    fonts-noto \
-    fonts-noto-cjk \
-    git \
-    curl \
-    unzip \
-    xz-utils \
-    zip \
-    libglu1-mesa \
-    jq
-
-# Install Flutter SDK
-ENV FLUTTER_VERSION=3.22.1
-ENV FLUTTER_HOME=/flutter
-ENV PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$PATH"
-
-RUN git clone https://github.com/flutter/flutter.git $FLUTTER_HOME && \
-    cd $FLUTTER_HOME && \
-    git checkout tags/${FLUTTER_VERSION} -b ${FLUTTER_VERSION} && \
-    flutter doctor
-
-USER gitpod
 
